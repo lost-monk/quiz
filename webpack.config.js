@@ -6,6 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js", // Output file for bundled JavaScript
+    publicPath: "/quiz/"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".json"], // File extensions to resolve
@@ -24,7 +25,15 @@ module.exports = {
       },
       {
         test: /sqlite\.worker\.js$/, // Handle worker files (sqlite.worker.js)
-        use: { loader: 'worker-loader' },
+        use: { loader: 'worker-loader' ,
+        options: {
+          inline: "fallback", // In-line the worker for better compatibility
+        },
+      },
+      },
+      {
+        test: /\.sqlite3$/,
+        use: 'file-loader',
       },
     ],
   },
