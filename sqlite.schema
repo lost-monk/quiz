@@ -1,0 +1,40 @@
+-- Enable foreign keys if you're using foreign key constraints
+PRAGMA foreign_keys = ON;
+
+-- Create the categories table
+CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+-- Create the quiz_questions table with a foreign key reference to categories
+CREATE TABLE IF NOT EXISTS quiz_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question TEXT NOT NULL,
+    option_1 TEXT NOT NULL,
+    option_2 TEXT NOT NULL,
+    option_3 TEXT NOT NULL,
+    option_4 TEXT NOT NULL,
+    correct_answer INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    display_date DATE NOT NULL,
+    created_by TEXT NOT NULL,
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by TEXT,
+    update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+
+-- Insert sample categories
+INSERT INTO categories (name) VALUES ('Math');
+INSERT INTO categories (name) VALUES ('Science');
+INSERT INTO categories (name) VALUES ('History');
+
+-- Insert sample quiz questions
+INSERT INTO quiz_questions (
+    question, option_1, option_2, option_3, option_4,
+    correct_answer, category_id, display_date, created_by
+) 
+VALUES 
+('What is the capital of France?', 'Berlin', 'Madrid', 'Paris', 'Rome', 3, 1, '2024-12-15', 'admin'),
+('Which planet is known as the Red Planet?', 'Earth', 'Mars', 'Venus', 'Jupiter', 2, 2, '2024-12-20', 'admin');
