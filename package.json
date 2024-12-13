@@ -1,12 +1,20 @@
 {
-  "scripts": {
-    "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production"
+  "name": "react-quiz-app",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "https://lost-monk.github.io/quiz",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-scripts": "5.0.0",
+    "sql.js-httpvfs": "^0.8.12",
+    "sqlite3": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "css-loader": "^7.1.2",
+    "gh-pages": "^3.2.3",
     "html-webpack-plugin": "^5.6.3",
     "react-datepicker": "^7.5.0",
     "style-loader": "^4.0.0",
@@ -16,9 +24,30 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.2.0"
   },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "sql.js-httpvfs": "^0.8.12"
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
