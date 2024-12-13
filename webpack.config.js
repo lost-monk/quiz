@@ -22,6 +22,10 @@ module.exports = {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
+      {
+        test: /sqlite\.worker\.js$/, // Handle worker files (sqlite.worker.js)
+        use: { loader: 'worker-loader' },
+      },
     ],
   },
   devServer: {
