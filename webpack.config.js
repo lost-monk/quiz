@@ -4,14 +4,17 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
+
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
-    publicPath: "/quiz/"
+    publicPath: "/quiz/",   // IMPORTANT for GitHub Pages
   },
+
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".json"],
   },
+
   module: {
     rules: [
       {
@@ -21,26 +24,31 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        use: ["style-loader", "css-loader"],
       },
+
+      // Allow `.sqlite3` to be copied if imported (not needed anymore)
       {
         test: /\.sqlite3$/,
-        use: 'file-loader',
+        type: "asset/resource",
       },
     ],
   },
+
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html",
+      template: "./public/index.html",   // clean HTML, no script tags
+      publicPath: "/quiz/",
     }),
-  new CopyWebpackPlugin({
-    patterns: [
-      { from: path.resolve(__dirname, "public/sqlite.worker.js"), to: "" },
-      { from: path.resolve(__dirname, "public/sql-wasm.wasm"), to: "" },
-      { from: path.resolve(__dirname, "public/example.sqlite3"), to: "" },
-    ],
-  }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: "public/sqlite.worker.js", to: "" },
+        { from: "public/sql-wasm.wasm", to: "" },
+        { from: "public/example.sqlite3", to: "" }
+      ]
+  })
   ],
+
   devServer: {
     static: {
       directory: path.resolve(__dirname, "public"),
@@ -49,5 +57,6 @@ module.exports = {
     hot: true,
     open: true,
   },
+
   devtool: "source-map",
 };
