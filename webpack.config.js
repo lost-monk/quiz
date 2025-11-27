@@ -1,35 +1,27 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: "./src/index.tsx", // Entry point for the app
+  entry: "./src/index.tsx",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "bundle.js", // Output file for bundled JavaScript
+    filename: "bundle.js",
     publicPath: "/quiz/"
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".json"], // File extensions to resolve
+    extensions: [".ts", ".tsx", ".js", ".json"],
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader", // Use ts-loader to transpile TypeScript files
+        use: "ts-loader",
         exclude: /node_modules/,
       },
-      // Handle CSS files
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
-      },
-      {
-        test: /sqlite\.worker\.js$/, // Handle worker files (sqlite.worker.js)
-        use: { loader: 'worker-loader' ,
-        options: {
-          inline: "fallback", // In-line the worker for better compatibility
-        },
-      },
       },
       {
         test: /\.sqlite3$/,
@@ -37,18 +29,25 @@ module.exports = {
       },
     ],
   },
-  devServer: {
-    static: {
-      directory: path.resolve(__dirname, "public"), // Serve static files from 'public' folder
-    },
-    port: 3000, // Port to run the development server
-    hot: true, // Enable Hot Module Replacement (HMR)
-    open: true, // Open the browser automatically when the server starts
-  },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html", // HTML template to inject the JS bundle
+      template: "./public/index.html",
     }),
+  new CopyWebpackPlugin({
+    patterns: [
+      { from: path.resolve(__dirname, "public/sqlite.worker.js"), to: "" },
+      { from: path.resolve(__dirname, "public/sql-wasm.wasm"), to: "" },
+      { from: path.resolve(__dirname, "public/example.sqlite3"), to: "" },
+    ],
+  }),
   ],
-  devtool: "source-map", // Source maps for debugging
+  devServer: {
+    static: {
+      directory: path.resolve(__dirname, "public"),
+    },
+    port: 3000,
+    hot: true,
+    open: true,
+  },
+  devtool: "source-map",
 };

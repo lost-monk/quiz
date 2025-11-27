@@ -3,11 +3,9 @@ import { createDbWorker } from "sql.js-httpvfs";
 // Serve the worker and wasm from `public/` so the dev server can load them.
 // Files will be copied to `public/sqlite.worker.js` and `public/sql-wasm.wasm`.
 // Use root-relative string paths so webpack doesn't try to bundle these files.
-const workerUrl = '/sqlite.worker.js';
-const wasmUrl = '/sql-wasm.wasm';
-const dbUrl = process.env.NODE_ENV === "production"
-  ? `${process.env.PUBLIC_URL}/example.sqlite3`
-  : "/example.sqlite3";
+const workerUrl = process.env.PUBLIC_URL + "/sqlite.worker.js";
+const wasmUrl = process.env.PUBLIC_URL + "/sql-wasm.wasm";
+const dbUrl = process.env.PUBLIC_URL + "/example.sqlite3";
 
 export async function queryDatabase(query: string): Promise<any> {
   console.log("[sqliteHelper] queryDatabase called:", query, "dbUrl:", dbUrl);
