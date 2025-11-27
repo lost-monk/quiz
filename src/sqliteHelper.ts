@@ -1,11 +1,12 @@
 import { createDbWorker } from "sql.js-httpvfs";
 
-// Serve the worker and wasm from `public/` so the dev server can load them.
-// Files will be copied to `public/sqlite.worker.js` and `public/sql-wasm.wasm`.
-// Use root-relative string paths so webpack doesn't try to bundle these files.
-const workerUrl = process.env.PUBLIC_URL + "/sqlite.worker.js";
-const wasmUrl = process.env.PUBLIC_URL + "/sql-wasm.wasm";
-const dbUrl = process.env.PUBLIC_URL + "/example.sqlite3";
+// GitHub Pages automatically sets PUBLIC_URL = "/quiz"
+const base = process.env.PUBLIC_URL || "";
+
+// Final URLs
+const workerUrl = `${base}/sqlite.worker.js`;
+const wasmUrl = `${base}/sql-wasm.wasm`;
+const dbUrl = `${base}/example.sqlite3`;
 
 export async function queryDatabase(query: string): Promise<any> {
   console.log("[sqliteHelper] queryDatabase called:", query, "dbUrl:", dbUrl);
