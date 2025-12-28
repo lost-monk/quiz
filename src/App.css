@@ -48,18 +48,83 @@
     margin-bottom: 20px;
     color: #333;
   }
+
+  /* Container for all options */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
   
-  /* Option styles */
+/* Base style for each option button */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: 1.5px solid #000000; /* Black border from your image */
+  border-radius: 50px;         /* Creates the pill/capsule shape */
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1c1e21;
+  user-select: none;           /* Prevents text highlighting on double-click */
+  width: 100%;                 /* Ensures all pills are the same width */
+  box-sizing: border-box;      /* Prevents padding from breaking width */
+  display: block;              /* Better for vertical stacking of pills */
+  text-align: center;
+}
+
+/* Hover effect */
+.option:hover:not(.disabled) {
+  background-color: #f0f0f0;
+}
+
+/* The "Open App" Green Style (for Selected or Correct answers) */
+.option.selected, 
+.option.correct-choice {
+  background-color: #66D37E; /* The light green from your image */
+  border-color: #000000;
+  color: #000000;
+}
+  
+/* Hide the default radio dot to keep it clean like the image */
+.option input[type="radio"] {
+  display: none;
+}
+
+/* Add this to handle the "Incorrect" state visually */
+.option.incorrect-choice {
+  background-color: #ffcccc;   /* Light red pill for wrong answers */
+  border-color: #cc0000;
+  color: #cc0000;
+}
+  
+@media (max-width: 600px) {
+  .quiz-container {
+    margin: 10px;
+    padding: 15px;
+  }
   .option {
-    margin: 10px 0;
-    font-size: 1.2rem;
-    color: #555;
+    padding: 15px 10px; /* Taller touch targets for mobile fingers */
   }
-  
-  input[type="radio"] {
-    margin-right: 10px;
-  }
-  
+}
+
+.share-button {
+  background-color: #25D366; 
+  color: white;
+  border-radius: 50px; /* Match the pill theme! */
+  padding: 12px 24px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
   label {
     cursor: pointer;
   }
@@ -100,4 +165,25 @@
     font-weight: bold;
     color: #007bff;
   }
+
+  .loading-state {
+    font-size: 1.4rem;
+    color: #007bff;
+    font-weight: bold;
+    padding: 30px;
+    border: 2px dashed #007bff55;
+    border-radius: 8px;
+    margin-top: 20px;
+    animation: pulse 1.5s infinite; 
+}
   
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+fieldset:disabled {
+    opacity: 0.6;
+    pointer-events: none; 
+}

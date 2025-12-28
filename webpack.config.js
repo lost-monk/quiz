@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
@@ -36,6 +37,11 @@ module.exports = {
   },
 
   plugins: [
+    new webpack.DefinePlugin({
+      // This injects the variable into your app code.
+      // It sets process.env.PUBLIC_URL to the string value "/quiz".
+      "process.env.PUBLIC_URL": JSON.stringify("/quiz") 
+    }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",   // clean HTML, no script tags
       publicPath: "/quiz/",
@@ -44,7 +50,7 @@ module.exports = {
       patterns: [
         { from: "public/sqlite.worker.js", to: "" },
         { from: "public/sql-wasm.wasm", to: "" },
-        { from: "public/example.sqlite3", to: "" }
+        { from: "public/example.db-data", to: "" }
       ]
   })
   ],

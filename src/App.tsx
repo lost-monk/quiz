@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import ReactDatePicker from "react-datepicker";
-import { queryDatabase } from "./sqliteHelper"; // Assuming you have a helper to interact with SQLite
+import { queryDatabase } from "./sqliteHelper";
+import QuizQuestionCard from "./components/QuizQuestionCard";
 
 import "react-datepicker/dist/react-datepicker.css";
-import "./App.css"; // Include the CSS for styling
-
-// Interface to define the shape of category and question data
-interface Category {
-  id: number;
-  name: string;
-}
+import "./App.css";
 
 interface Question {
   id: number;
@@ -18,157 +13,117 @@ interface Question {
   option_2: string;
   option_3: string;
   option_4: string;
-  category: string;
-  display_date: string;
-  created_by: string;
-  creation_date: string;
+  category?: string;
+  display_date?: string;
 }
 
 const App: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([]); // Category list
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null); // Selected category
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Date or null
-  const [questions, setQuestions] = useState<Question[]>([]); // Fetched questions for the selected date
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null); // Answer selected by the user
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null); // Whether the answer is correct
-  const [correctAnswer, setCorrectAnswer] = useState<number | null>(null); // Store the correct answer for the selected question
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [userResult, setUserResult] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
 
-  const handleDateChange = (date: Date | null) => {
-    setSelectedDate(date); // Now it can handle both Date and null
-  };
+  // --- Configuration ---
+  // Adjust this date so that "Day 0" is when you want your Question #1 to appear.
+  const APP_LAUNCH_DATE = new Date("2025-12-01"); 
 
-  // Fetch categories on component mount
   useEffect(() => {
-    const fetchCategories = async () => {
-      const result = await queryDatabase("SELECT * FROM categories");
-      setCategories(result || []);
+    const loadDailyChallenge = async () => {
+      setIsLoading(true);
+      
+      // 1. Normalize dates to local midnight (prevents daylight savings/timezone bugs)
+      const normalizedSelected = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      const normalizedLaunch = new Date(APP_LAUNCH_DATE.getFullYear(), APP_LAUNCH_DATE.getMonth(), APP_LAUNCH_DATE.getDate());
+      
+      const dateStr = normalizedSelected.toISOString().split("T")[0];
+
+      // 2. Check local solved status
+      const savedData = localStorage.getItem(`daily_quiz_${dateStr}`);
+      setUserResult(savedData ? JSON.parse(savedData) : null);
+
+      try {
+        // 3. Get count and calculate deterministic Modulo ID
+        const countRes = await queryDatabase("SELECT COUNT(*) as total FROM quiz_questions");
+        const totalCount = countRes[0]?.total || 0;
+
+        if (totalCount > 0) {
+          const diffInMs = normalizedSelected.getTime() - normalizedLaunch.getTime();
+          const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+          
+          // The Modulo logic: wraps around 1 to totalCount infinitely
+          const fallbackId = ((diffInDays % totalCount) + totalCount) % totalCount + 1;
+
+          // 4. Fetch Question (Priority: Dated Entry > Sequence Entry)
+          const query = `
+            SELECT q.*, c.name as category 
+            FROM quiz_questions q
+            LEFT JOIN categories c ON q.category_id = c.id
+            WHERE q.display_date = '${dateStr}' 
+            OR (q.display_date IS NULL AND q.id = ${fallbackId})
+            ORDER BY q.display_date DESC 
+            LIMIT 1
+          `;
+          
+          const result = await queryDatabase(query);
+          setQuestion(result && result.length > 0 ? result[0] : null);
+        }
+      } catch (error) {
+        console.error("Error loading challenge:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    fetchCategories();
-  }, []);
 
-  // Fetch questions based on category and selected date
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      if (!selectedCategory || !selectedDate) return;
+    loadDailyChallenge();
+  }, [selectedDate]);
 
-      const formattedDate = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-      const query = `
-        SELECT 
-          q.id, q.question, q.option_1, q.option_2, q.option_3, q.option_4,
-          c.name AS category, q.display_date
-        FROM quiz_questions q
-        JOIN categories c ON q.category_id = c.id
-        WHERE q.category_id = ${selectedCategory} AND q.display_date = '${formattedDate}'
-      `;
-      const result = await queryDatabase(query);
-      setQuestions(result || []);
-    };
-
-    fetchQuestions();
-  }, [selectedCategory, selectedDate]);
-
-  const handleAnswerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedAnswer(Number(event.target.value));
-  };
-
-  const handleSubmitAnswer = async (questionId: number) => {
-    // Fetch the correct answer only when the user submits
-    const query = `
-      SELECT correct_answer 
-      FROM quiz_questions 
-      WHERE id = ${questionId}
-    `;
-    const result = await queryDatabase(query);
-    if (result && result[0]) {
-      setCorrectAnswer(result[0].correct_answer); // Set the correct answer
-      const isAnswerCorrect = selectedAnswer === result[0].correct_answer;
-      setIsCorrect(isAnswerCorrect); // Check if the user's answer is correct
-    }
-  };
+  const handleSolve = (stats: any) => setUserResult(stats);
 
   return (
     <div className="quiz-container">
-      <h1>Quiz App</h1>
+      <header className="header-section">
+        <h1>Daily Quiz</h1>
 
-      {/* Category Dropdown */}
-      <div className="category-selector">
-        <label htmlFor="category">Select Category: </label>
-        <select
-          id="category"
-          value={selectedCategory ?? ""}
-          onChange={(e) => setSelectedCategory(Number(e.target.value))}
-        >
-          <option value="" disabled>Select a Category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Date Picker */}
-      <div className="date-picker">
-        <label htmlFor="date">Select Date: </label>
-        <ReactDatePicker
-          selected={selectedDate}
-          onChange={handleDateChange}
-          dateFormat="yyyy-MM-dd"
-          minDate={new Date()}
-        />
-      </div>
-
-      {/* Display Questions */}
-      <div className="questions-container">
-        {questions.length === 0 && selectedCategory && selectedDate ? (
-          <p>No questions available for the selected date.</p>
-        ) : (
-          questions.map((question) => (
-            <div key={question.id} className="question-box">
-              <p className="question-text">{question.question}</p>
-
-              {/* Display options as radio buttons */}
-              {['option_1', 'option_2', 'option_3', 'option_4'].map((option, idx) => (
-                <div key={idx} className="option">
-                  <input
-                    type="radio"
-                    id={`${option}-${question.id}`}
-                    name={`question-${question.id}`}
-                    value={idx + 1}
-                    checked={selectedAnswer === idx + 1}
-                    onChange={handleAnswerChange}
-                  />
-                  <label htmlFor={`${option}-${question.id}`}>
-                    {question[option as keyof Question]}
-                  </label>
-                </div>
-              ))}
-
-              {/* Submit button */}
-              <button
-                className="submit-button"
-                onClick={() => handleSubmitAnswer(question.id)}
-              >
-                Submit Answer
-              </button>
-
-              {/* Display feedback */}
-              {isCorrect !== null && (
-                <div className={`feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
-                  {isCorrect ? <p>Correct! 🎉</p> : <p>Incorrect. 😞</p>}
-                </div>
-              )}
-
-              {/* Show correct answer if the answer is wrong */}
-              {correctAnswer !== null && selectedAnswer !== null && selectedAnswer !== correctAnswer && (
-                <div className="correct-answer">
-                  <p>Correct Answer: Option {correctAnswer}</p>
-                </div>
-              )}
+        <div className="history-control">
+          <button className="toggle-calendar-btn" onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
+            {isCalendarOpen ? "Close History ✕" : "View Past Quizzes 📅"}
+          </button>
+          
+          {isCalendarOpen && (
+            <div className="calendar-dropdown">
+              <ReactDatePicker
+                selected={selectedDate}
+                onChange={(date: Date | null) => { if (date) { setSelectedDate(date); setIsCalendarOpen(false); } }}
+                minDate={APP_LAUNCH_DATE}
+                maxDate={new Date()} // Users can't play tomorrow's quiz yet
+                inline
+              />
             </div>
-          ))
+          )}
+        </div>
+
+        <p className="current-date-label">
+          {selectedDate.toDateString() === new Date().toDateString() 
+            ? "Today's Challenge" 
+            : `Challenge for ${selectedDate.toLocaleDateString()}`}
+        </p>
+      </header>
+
+      <main className="questions-container">
+        {isLoading ? (
+          <div className="loading-state"><p>Loading...</p></div>
+        ) : question ? (
+          <QuizQuestionCard 
+            key={`${question.id}-${selectedDate.toDateString()}`} 
+            question={question} 
+            alreadySolvedData={userResult} 
+            onSolve={handleSolve}
+          />
+        ) : (
+          <p>No question found for this date.</p>
         )}
-      </div>
+      </main>
     </div>
   );
 };
