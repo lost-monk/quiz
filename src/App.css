@@ -1,189 +1,305 @@
 /* General layout and styling */
 .quiz-container {
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-  }
-  
-  h1 {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 30px;
-  }
-  
-  /* Category dropdown and date picker */
-  .category-selector, .date-picker {
-    margin-bottom: 20px;
-  }
-  
-  select, .react-datepicker__input-container input {
-    padding: 10px;
-    font-size: 1rem;
-    width: 250px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-  }
-  
-  /* Questions */
-  .questions-container {
-    margin-top: 20px;
-  }
-  
-  .question-box {
-    background-color: #f9f9f9;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .question-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
-  }
+  max-width: 500px; /* Narrower, more mobile-app feel */
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-  /* Container for all options */
+h1 {
+  font-size: 2rem;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+}
+
+/* Progress Navigation Container */
+.progress-navigation {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 20px 0;
+  background: transparent;
+}
+
+/* Base Dot Style - Professional & Minimal */
+.dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0; /* Subtle slate border */
+  background-color: #ffffff;
+  color: #64748b; /* Professional muted slate text */
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* PROFESSIONAL ACTIVE STATE */
+.dot.active {
+  border-color: #0f172a; /* Deep charcoal border */
+  background-color: #f8fafc;
+  color: #0f172a;
+  transform: translateY(-2px); /* Slight lift instead of massive scale */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dot.active::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  width: 12px;
+  height: 3px;
+  background-color: #000;
+  border-radius: 10px;
+}
+
+/* Hover state for desktop */
+.dot:hover:not(.active) {
+  border-color: #94a3b8;
+  background-color: #f1f5f9;
+}
+
+.dot.inactive {
+  opacity: 0.6;
+}
+
+/* Status Colors - Refined Pallet */
+.dot.solved {
+  background-color: #66D37E !important; /* Your brand green */
+  border-color: #000000;
+  color: #000000;
+}
+
+.dot.failed {
+  background-color: #fee2e2 !important; /* Light red background */
+  border-color: #ef4444; /* Bright red border */
+  color: #b91c1c;
+}
+
+/* Options/Pills */
 .options-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 20px;
+  margin: 20px 0;
 }
-  
-/* Base style for each option button */
+
 .option {
+  padding: 14px 20px;
+  border: 2px solid #000000;
+  border-radius: 50px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
-  border: 1.5px solid #000000; /* Black border from your image */
-  border-radius: 50px;         /* Creates the pill/capsule shape */
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: sans-serif;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1c1e21;
-  user-select: none;           /* Prevents text highlighting on double-click */
-  width: 100%;                 /* Ensures all pills are the same width */
-  box-sizing: border-box;      /* Prevents padding from breaking width */
-  display: block;              /* Better for vertical stacking of pills */
-  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* Keeps the hover effect inside the pill */
 }
 
-/* Hover effect */
-.option:hover:not(.disabled) {
-  background-color: #f0f0f0;
+/* HOVER STATE: Only active when the question is still being played */
+.option:hover:not(.disabled):not(.correct-choice):not(.incorrect-choice) {
+  background-color: #f8fafc; /* Very light slate */
+  border-color: #007bff;     /* Change border to blue on hover */
+  transform: translateY(-2px); /* Subtle lift */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* The "Open App" Green Style (for Selected or Correct answers) */
-.option.selected, 
+/* ACTIVE/PRESSED STATE: When the user actually clicks down */
+.option:active:not(.disabled) {
+  transform: translateY(0px);
+  filter: brightness(0.95);
+}
+
+/* Ensure disabled pills don't have hover effects */
+.option.disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.option.selected {
+  background-color: #e7f3ff !important;
+  border-color: #007bff !important;
+  color: #007bff;
+  box-shadow: inset 0 0 0 1px #007bff; /* Sharp inner border */
+}
+
 .option.correct-choice {
-  background-color: #66D37E; /* The light green from your image */
-  border-color: #000000;
-  color: #000000;
+  background-color: #66D37E !important;
+  border-color: #000 !important;
+  color: #000 !important;
 }
-  
-/* Hide the default radio dot to keep it clean like the image */
+
+.option.incorrect-choice {
+  background-color: #ffcccc !important;
+  border-color: #cc0000 !important;
+  color: #cc0000 !important;
+}
+
+/* .option.disabled {
+  pointer-events: none;
+} */
+
+/* Hide the default radio dot */
 .option input[type="radio"] {
   display: none;
 }
 
-/* Add this to handle the "Incorrect" state visually */
-.option.incorrect-choice {
-  background-color: #ffcccc;   /* Light red pill for wrong answers */
-  border-color: #cc0000;
-  color: #cc0000;
-}
-  
-@media (max-width: 600px) {
-  .quiz-container {
-    margin: 10px;
-    padding: 15px;
-  }
-  .option {
-    padding: 15px 10px; /* Taller touch targets for mobile fingers */
-  }
+/* Submit & Navigation Buttons */
+.quiz-nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px; /* Consistent spacing between buttons */
+  margin-top: 30px;
+  width: 100%;
 }
 
-.share-button {
-  background-color: #25D366; 
-  color: white;
-  border-radius: 50px; /* Match the pill theme! */
-  padding: 12px 24px;
-  font-weight: bold;
-  border: none;
+/* Base Navigation Buttons */
+.nav-btn {
+  flex: 1;
+  height: 42px;
+  padding: 0 15px;
+  background-color: #eeeeee; /* Light neutral gray */
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #444;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease; /* Smooth transition for hover */
+}
+
+/* HOVER STATE for Next/Previous */
+.nav-btn:hover:not(:disabled) {
+  background-color: #e2e8f0; /* Slightly darker slate gray */
+  color: #1a1a1a;            /* Darker text on hover */
+  border-color: #cbd5e1;     /* Subtle border reveal */
+  transform: translateY(-1px); /* Very slight lift */
+}
+
+/* ACTIVE/CLICKED STATE */
+.nav-btn:active:not(:disabled) {
+  background-color: #cbd5e1;
+  transform: translateY(0);   /* Push back down */
+}
+
+/* DISABLED STATE */
+.nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.share-btn-compact {
+  flex: 1.2; 
+  background-color: #66D37E; /* Matching your "Correct" tile green */
+  color: #004d1a;            /* Dark green text for better contrast */
+  border: 1.5px solid #000;  /* Matching the black border of your tiles */
+  padding: 10px;
+  border-radius: 50px;       /* Pill shape to match your answer tiles */
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  height: 42px;              /* Explicit height to match nav buttons exactly */
+}
+
+.share-btn-compact:hover {
+  background-color: #55c46d;
+  transform: translateY(-1px);
+}
+
+/* Subtler pulse that only affects the shadow, not the size */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(102, 211, 126, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(102, 211, 126, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(102, 211, 126, 0); }
+}
+
+.share-btn-compact.pulse-animation {
+  animation: pulseGlow 2s infinite;
+}
+
+.submit-button, .quiz-nav-buttons button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #f0f0f0;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.submit-button {
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Animations */
+.animate-success {
+  animation: success-glow 0.8s ease-out;
+}
+
+@keyframes success-glow {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(102, 211, 126, 0.2); }
+  100% { background-color: transparent; }
+}
+
+.score-display-container {
   margin-top: 15px;
+  padding: 6px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px dashed #ccc;
+  animation: fadeIn 0.5s ease-out;
 }
 
-  label {
-    cursor: pointer;
-  }
-  
-  .submit-button {
-    padding: 12px 25px;
-    font-size: 1.2rem;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-top: 20px;
-  }
-  
-  .submit-button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Feedback styles */
-  .feedback {
-    margin-top: 15px;
-    font-weight: bold;
-  }
-  
-  .feedback.correct {
-    color: green;
-  }
-  
-  .feedback.incorrect {
-    color: red;
-  }
-  
-  .correct-answer {
-    margin-top: 15px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #007bff;
-  }
-
-  .loading-state {
-    font-size: 1.4rem;
-    color: #007bff;
-    font-weight: bold;
-    padding: 30px;
-    border: 2px dashed #007bff55;
-    border-radius: 8px;
-    margin-top: 20px;
-    animation: pulse 1.5s infinite; 
-}
-  
-@keyframes pulse {
-    0% { opacity: 0.8; }
-    50% { opacity: 1; }
-    100% { opacity: 0.8; }
+.score-text {
+  font-size: 1rem;
+  margin: 0;
+  color: #333;
 }
 
-fieldset:disabled {
-    opacity: 0.6;
-    pointer-events: none; 
+.score-text strong {
+  color: #2e7d32; /* Green for the numbers */
+  font-size: 1rem;
+}
+
+.score-subtext {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

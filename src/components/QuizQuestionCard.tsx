@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { queryDatabase } from '../sqliteHelper';
 
 interface QuizQuestionCardProps {
@@ -8,77 +8,96 @@ interface QuizQuestionCardProps {
   activeDateStr: string;
 }
 
+const MAX_ATTEMPTS = 3;
+
 const QuizQuestionCard: React.FC<QuizQuestionCardProps> = ({ question, alreadySolvedData, onSolve, activeDateStr }) => {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(alreadySolvedData?.selectedAnswer || null);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(alreadySolvedData ? true : null);
-  const [retryCount, setRetryCount] = useState<number>(alreadySolvedData?.attempts - 1 || 0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [attempts, setAttempts] = useState<number>(0);
+  const [status, setStatus] = useState<'playing' | 'solved' | 'failed'>('playing');
+  const [isLastAttemptWrong, setIsLastAttemptWrong] = useState(false);
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null);
 
-React.useEffect(() => {
-    if (alreadySolvedData) {
-      setSelectedAnswer(alreadySolvedData.selectedAnswer);
-      setIsCorrect(true);
-      setRetryCount(alreadySolvedData.attempts - 1);
-    } else {
-      // Reset if navigating to a date that hasn't been solved
-      setSelectedAnswer(null);
-      setIsCorrect(null);
-      setRetryCount(0);
-    }
-  }, [alreadySolvedData, question.id]);
+  useEffect(() => {
+    const init = async () => {
+      // Always fetch the correct index from the DB for this question
+      const res = await queryDatabase(`SELECT correct_answer FROM quiz_questions WHERE id = ${question.id}`);
+      if (res && res.length > 0) setCorrectIndex(res[0].correct_answer);
 
-  const todayStr = new Date().toLocaleDateString('en-CA');
+      if (alreadySolvedData) {
+        setSelectedAnswer(alreadySolvedData.selectedAnswer);
+        setAttempts(alreadySolvedData.attempts);
+        setStatus(alreadySolvedData.status);
+      } else {
+        setSelectedAnswer(null);
+        setAttempts(0);
+        setStatus('playing');
+        setIsLastAttemptWrong(false);
+      }
+    };
+    init();
+  }, [alreadySolvedData, question?.id]);
 
   const handleSubmit = async () => {
-    if (selectedAnswer === null || isCorrect) return;
+    if (selectedAnswer === null || status !== 'playing' || !correctIndex) return;
 
-    const res = await queryDatabase(`SELECT correct_answer FROM quiz_questions WHERE id = ${question.id}`);
-    const correctAns = res[0].correct_answer;
+    const currentAttempt = attempts + 1;
 
-    if (selectedAnswer === correctAns) {
-      setIsCorrect(true);
-      const stats = {
-        attempts: retryCount + 1,
-        solvedDate: activeDateStr,
-        selectedAnswer: selectedAnswer
-      };
-      localStorage.setItem(`daily_quiz_${activeDateStr}`, JSON.stringify(stats));
-      onSolve(stats);
+    if (selectedAnswer === correctIndex) {
+      setIsLastAttemptWrong(false);
+      setStatus('solved');
+      onSolve({ attempts: currentAttempt, status: 'solved', selectedAnswer });
     } else {
-      setIsCorrect(false);
-      setRetryCount(prev => prev + 1);
+      if (currentAttempt >= MAX_ATTEMPTS) {
+        setStatus('failed');
+        onSolve({ attempts: MAX_ATTEMPTS, status: 'failed', selectedAnswer });
+      } else {
+        setAttempts(currentAttempt);
+        setIsLastAttemptWrong(true);
+      }
     }
   };
 
-  const shareResults = () => {
-    const attempts = retryCount + 1;
-    const text = `🎯 I solved Today's Quiz in ${attempts} attempt(s)!\n\nQuestion: ${question.question}\n\nCan you beat me? Play here: ${window.location.href}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
+  const isLocked = status !== 'playing';
 
   return (
-    <div className="question-box">
-      {/* 1. RENDER THE QUESTION TEXT */}
+    <div className={`question-box ${status === 'solved' ? 'animate-success' : ''}`}>
       <p className="question-text">{question.question}</p>
 
-      {/* 2. RENDER THE PILL OPTIONS */}
       <div className="options-list">
         {[1, 2, 3, 4].map((i) => {
           const isThisOptionSelected = selectedAnswer === i;
-          const isCorrectChoice = isCorrect && isThisOptionSelected;
+          const isActuallyCorrect = correctIndex === i;
+          
+          let stateClass = "";
+
+          if (status === 'solved' || status === 'failed') {
+            // REVEAL MODE: If the question is over, highlight the right one green
+            if (isActuallyCorrect) {
+              stateClass = "correct-choice";
+            } else if (isThisOptionSelected && status === 'failed') {
+              // If this was the user's final wrong pick, keep it red
+              stateClass = "incorrect-choice";
+            }
+          } else {
+            // PLAYING MODE
+            if (isThisOptionSelected) {
+              stateClass = isLastAttemptWrong ? "incorrect-choice" : "selected";
+            }
+          }
 
           return (
-            <label 
-              key={i} 
-              className={`option ${isThisOptionSelected ? 'selected' : ''} 
-                          ${isCorrectChoice ? 'correct-choice' : ''} 
-                          ${isCorrect ? 'disabled' : ''}`}
-            >
+            <label key={i} className={`option ${stateClass} ${isLocked ? 'disabled' : ''}`}>
               <input 
                 type="radio" 
-                name="quiz" 
+                name={`quiz-${question.id}`} 
                 checked={isThisOptionSelected} 
-                onChange={() => !isCorrect && setSelectedAnswer(i)}
-                disabled={isCorrect === true}
+                onChange={() => {
+                  if(!isLocked) {
+                    setSelectedAnswer(i);
+                    setIsLastAttemptWrong(false);
+                  }
+                }}
+                disabled={isLocked}
               />
               {question[`option_${i}`]}
             </label>
@@ -86,28 +105,19 @@ React.useEffect(() => {
         })}
       </div>
 
-      {/* 3. RENDER SUBMIT OR SHARE ACTIONS */}
       <div className="interaction-area">
-        {isCorrect ? (
-          <div className="feedback correct">
-            <p>✅ Correct! Solved in {retryCount + 1} attempt(s).</p>
-            <button className="share-button" onClick={shareResults}>
-              Share on WhatsApp 📱
-            </button>
-          </div>
+        {status === 'playing' ? (
+          <button className="submit-button" onClick={handleSubmit} disabled={selectedAnswer === null}>
+            Submit Answer (Attempt {attempts + 1}/{MAX_ATTEMPTS})
+          </button>
         ) : (
-          <>
-            <button 
-              className="submit-button" 
-              onClick={handleSubmit} 
-              disabled={selectedAnswer === null}
-            >
-              Submit Answer
-            </button>
-            {isCorrect === false && (
-              <p className="feedback incorrect">❌ Incorrect. Try again! (Attempt {retryCount + 1})</p>
+          <div className={`feedback ${status}`}>
+            {status === 'solved' ? (
+              <p>✅ Correct! Solved in {attempts} attempt(s).</p>
+            ) : (
+              <p>❌ The correct answer is highlighted in green.</p>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
