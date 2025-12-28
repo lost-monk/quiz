@@ -36,7 +36,7 @@ const App: React.FC = () => {
       const normalizedSelected = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
       const normalizedLaunch = new Date(APP_LAUNCH_DATE.getFullYear(), APP_LAUNCH_DATE.getMonth(), APP_LAUNCH_DATE.getDate());
       
-      const dateStr = normalizedSelected.toISOString().split("T")[0];
+      const dateStr = selectedDate.toLocaleDateString('en-CA');
 
       // 2. Check local solved status
       const savedData = localStorage.getItem(`daily_quiz_${dateStr}`);
@@ -79,6 +79,7 @@ const App: React.FC = () => {
   }, [selectedDate]);
 
   const handleSolve = (stats: any) => setUserResult(stats);
+  const dateStr = selectedDate.toLocaleDateString('en-CA');
 
   return (
     <div className="quiz-container">
@@ -119,6 +120,7 @@ const App: React.FC = () => {
             question={question} 
             alreadySolvedData={userResult} 
             onSolve={handleSolve}
+            activeDateStr={dateStr}
           />
         ) : (
           <p>No question found for this date.</p>
