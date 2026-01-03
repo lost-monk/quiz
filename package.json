@@ -1,53 +1,36 @@
 {
-  "name": "react-quiz-app",
-  "version": "1.0.0",
+  "name": "quiz",
   "private": true,
-  "homepage": "https://lost-monk.github.io/quiz",
-  "dependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-scripts": "5.0.0",
-    "sql.js-httpvfs": "^0.8.12",
-    "sqlite3": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/react": "^19.0.1",
-    "@types/react-dom": "^19.0.2",
-    "copy-webpack-plugin": "^13.0.1",
-    "css-loader": "^7.1.2",
-    "gh-pages": "^3.2.3",
-    "html-webpack-plugin": "^5.6.3",
-    "react-datepicker": "^7.5.0",
-    "style-loader": "^4.0.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^4.9.5",
-    "webpack": "^5.97.1",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.2.0",
-    "worker-loader": "^3.0.8"
-  },
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "dependencies": {
+    "posthog-js": "^1.313.0",
+    "react": "^19.2.0",
+    "react-datepicker": "^9.1.0",
+    "react-dom": "^19.2.0",
+    "sql.js-httpvfs": "^0.8.12"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "gh-pages": "^6.3.0",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4"
   }
 }

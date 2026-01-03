@@ -1,69 +1,58 @@
-# quiz
-Hosting a quiz website using SQLite and `sql.js-httpvfs`.
+# Quiz — React + TypeScript + Vite
 
-## Quick start (development)
+This repository contains a small quiz application built with React, TypeScript and Vite.
 
-These instructions assume you have Node.js and npm or yarn installed.
+Purpose
+- A lightweight trivia/quiz app that reads question data from CSV/SQLite in `public/` and presents questions via the React UI in `src/`.
 
-1. Install dependencies
+Quick start
+
+Prerequisites:
+- Node 18+ and npm (or pnpm/yarn)
+
+Install dependencies and run the dev server:
 
 ```bash
 npm install
-# or
-yarn install
+npm run dev
 ```
 
-2. Copy runtime assets into `public/` (required so the dev server can serve the web worker and wasm file)
-
-```bash
-cp node_modules/sql.js-httpvfs/dist/sqlite.worker.js public/
-cp node_modules/sql.js-httpvfs/dist/sql-wasm.wasm public/
-```
-
-3. Ensure the SQLite database file is available in `public/` (dev mode expects `/example.sqlite3`)
-
-If you have an `example.sqlite3` in the repository build/public folder already, you're good. Otherwise copy it into `public/`:
-
-```bash
-# If you have a prepared DB elsewhere
-cp path/to/example.sqlite3 public/
-```
-
-4. Start the dev server
-
-```bash
-npm start
-# or
-yarn start
-```
-
-5. Open the app in your browser (usually `http://localhost:3000/`) and open DevTools → Console and Network for debugging.
-
-## Build for production
+Build and preview production bundle:
 
 ```bash
 npm run build
-# or
-yarn build
+npm run preview
 ```
 
-Serve the contents of `build/` with a static server.
+Project layout (key files)
+- `src/` — React app source
+- `src/components/` — UI components (quiz card, header, progress, share modal)
+- `src/hooks/` — custom hooks (quiz logic, sharing, tracking)
+- `src/sqliteHelper.ts` — SQLite helper used by the app
+- `public/` — static assets and data files (`data.csv`, `trivia_3000.csv`, example sqlite files)
+- `scripts/` — helper scripts (e.g. `import_questions.py` to import CSVs)
 
-## Notes & troubleshooting
+Data & scripts
+- CSV files: `public/data.csv`, `public/trivia_3000.csv` — sample question datasets.
+- Example SQLite files in `public/` are provided for demonstration. Use `scripts/import_questions.py` to convert or import CSVs into your own DB if needed.
 
-- The project uses `sql.js-httpvfs` which loads a web worker and a wasm binary at runtime. The dev server does not automatically serve files from `node_modules`, so we copy `sqlite.worker.js` and `sql-wasm.wasm` into `public/` (step 2). Alternatively you can host those files on a CDN and update `src/sqliteHelper.ts` to point to the CDN URLs.
-- Dev mode expects the DB at `/example.sqlite3`. If the categories/questions do not load, check DevTools → Network for requests to:
-	- `/sqlite.worker.js`
-	- `/sql-wasm.wasm`
-	- `/example.sqlite3`
+Running utility scripts (Python)
+```bash
+python3 scripts/import_questions.py path/to/questions.csv
+```
 
-	All three should return HTTP 200. If you see 404, copy the missing file into `public/`.
-- If the worker initialization hangs, you can add a timeout wrapper around `createDbWorker` to surface a clear error. See `src/sqliteHelper.ts` for current debug logs that print the query being executed and worker initialization steps.
+Notes
+- The app entry is `src/main.tsx` / `src/index.tsx` depending on config.
+- ESLint and TypeScript configs are present; consider enabling type-checked ESLint rules for production.
 
-## Files of interest
+Troubleshooting
+- If the dev server fails to start, ensure Node and package manager versions meet the prerequisites, then run `npm install` again.
+- For data import problems, check Python version (3.8+) and that CSV columns match the expected schema used by `import_questions.py`.
 
-- `src/sqliteHelper.ts` — initializes `sql.js-httpvfs` and provides `queryDatabase(query)` helper.
-- `src/App.tsx` — React UI that calls `queryDatabase("SELECT * FROM categories")` on mount and renders the quiz UI.
-- `sqlite.schema` — SQL schema and sample data used to create `example.sqlite3`.
+Contributing
+- Open an issue or submit a PR. Keep changes focused and add tests where applicable.
 
-If you want, I can also add an npm script to copy the `dist` files into `public/` automatically (e.g. `postinstall` or a `prepare-assets` script). Would you like me to add that? 
+License
+- This repo doesn't include an explicit license file. Add one if you plan to publish.
+
+For details about specific files, see the `src/` folder and `scripts/` utilities.

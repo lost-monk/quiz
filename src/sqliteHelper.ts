@@ -1,23 +1,30 @@
 import { createDbWorker } from "sql.js-httpvfs";
-// Get the current environment mode (set by Webpack)
-const ENV = process.env.NODE_ENV;
+// 1. Get environment variables the "Vite Way"
+const IS_PROD = import.meta.env.PROD;
+// Vite uses BASE_URL to handle your "public" path (e.g., "/quiz/")
+const BASE = import.meta.env.BASE_URL;
 
-// GitHub Pages automatically sets PUBLIC_URL = "/quiz"
-const base = process.env.PUBLIC_URL || "";
+// 2. Resolve Worker and WASM URLs
+// In Vite, creating a new URL like this tells the build tool to 
+// track the file and provide a stable path.
+const workerUrl = new URL(
+  "sql.js-httpvfs/dist/sqlite.worker.js",
+  import.meta.url
+);
+const wasmUrl = new URL(
+  "sql.js-httpvfs/dist/sql-wasm.wasm",
+  import.meta.url
+);
 
-// Final URLs
-const workerUrl = `${base}/sqlite.worker.js`;
-const wasmUrl = `${base}/sql-wasm.wasm`;
 let workerPromise: ReturnType<typeof createDbWorker> | null = null;
 let dbUrl: string;
-if (ENV === 'production') {
-  // Production: Use the reliable, uncompressed Raw GitHub link
+if (IS_PROD) {
   console.log("[sqliteHelper] Using PRODUCTION DB URL (Raw GitHub)");
   dbUrl = "https://raw.githubusercontent.com/lost-monk/quiz/gh-pages/example.db-data";
 } else {
-  // Development: Use the local URL served by webpack-dev-server
   console.log("[sqliteHelper] Using DEVELOPMENT DB URL (Local Server)");
-  dbUrl = `${base}/example.db-data`;
+  // If your db file is in /public/example.db-data, this will resolve correctly
+  dbUrl = `${BASE}example.db-data`;
 }
 
 async function initWorker(): Promise<ReturnType<typeof createDbWorker>> {
