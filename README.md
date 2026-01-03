@@ -1,8 +1,12 @@
 # Quiz — React + TypeScript + Vite
 
-This repository contains a small quiz application built with React, TypeScript and Vite.
+- A lightweight trivia/quiz app that reads question data from CSV/SQLite in `public/` and presents questions via the React UI in `src/`.
+
+Try it out
+- Live demo: [https://lost-monk.github.io/quiz/](https://lost-monk.github.io/quiz/)
 
 Purpose
+- A lightweight trivia/quiz app that reads question data from CSV/SQLite in `public/` and presents questions via the React UI in `src/`.
 - A lightweight trivia/quiz app that reads question data from CSV/SQLite in `public/` and presents questions via the React UI in `src/`.
 
 Quick start
@@ -22,6 +26,21 @@ Build and preview production bundle:
 ```bash
 npm run build
 npm run preview
+```
+
+Additional packages
+
+- Install packages used by the app:
+
+```bash
+npm install posthog-js react-datepicker sql.js-httpvfs
+```
+
+Common commands
+
+```bash
+npm run build
+npm run dev
 ```
 
 Project layout (key files)
