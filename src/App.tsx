@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
+  
   // Unified Hook Call
   const {
     stats,
@@ -32,6 +32,7 @@ const App: React.FC = () => {
   } = useQuizLogic(selectedDate, stats.currentStreak, trackEvent);
 
   const hasProcessedRecording = useRef<string | null>(null);
+  const hasInteractedThisSession = useRef<boolean>(false);
 
   // AUTO-OPEN & STATS RECORDING
   useEffect(() => {
@@ -39,8 +40,11 @@ const App: React.FC = () => {
 
     if (!isLoading && !isSyncing && questions.length > 0 && isComplete) {
 
-      // Check our "Session Lock" instead of the stats object
-      if (hasProcessedRecording.current !== dateStr) {
+      // ONLY record if the user actually clicked something since landing on this date
+      if (
+        hasProcessedRecording.current !== dateStr &&
+        hasInteractedThisSession.current
+      ) {
         const isWin = quizProgress.every(p => p?.status === 'solved');
         const totalAttempts = quizProgress.reduce((sum, p) => sum + (p?.attempts || 0), 0);
 
@@ -59,13 +63,21 @@ const App: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [quizProgress, isLoading, isSyncing, questions.length, recordCompletion, dateStr]);
+  }, [quizProgress, isLoading, isSyncing, dateStr]);
+
+  useEffect(() => {
+    hasInteractedThisSession.current = false;
+  }, [dateStr]);
 
   const handleSolve = (index: number, stats: any) => {
+    hasInteractedThisSession.current = true;
     const newProgress = [...quizProgress];
     newProgress[index] = stats;
-    setQuizProgress(newProgress);
+    // SAVE TO DISK FIRST (Synchronous)
     localStorage.setItem(`quiz_set_${dateStr}`, JSON.stringify(newProgress));
+
+    // UPDATE STATE SECOND (Asynchronous)
+    setQuizProgress(newProgress);
 
     // Auto-advance logic
     if (stats.status === 'solved' && index < 5) {

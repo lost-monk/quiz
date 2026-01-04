@@ -87,7 +87,11 @@ export const useUserTracking = () => {
     // 4. Record Completion
     const recordCompletion = useCallback((isWin: boolean, totalAttempts: number, dateStr: string) => {
         setStats(prev => {
-            if (prev.lastRecordedDate === dateStr) return prev;
+            // STRONG GUARD: If we already have a record for this date, stop immediately.
+            if (prev.lastRecordedDate === dateStr) {
+                console.log("Stats already recorded for this date, skipping.");
+                return prev;
+            }
 
             const newStreak = isWin ? prev.currentStreak + 1 : 0;
             const updated = {
